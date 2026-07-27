@@ -705,7 +705,8 @@ input{font-family:'Sarabun',sans-serif}
     <p class="muted" style="margin:10px 0 0;font-size:11px" id="theme-label">ตอนนี้ใช้: 🌿 มินต์พาสเทล</p>
   </div>
   <button class="btn-ghost" style="width:100%;margin-bottom:8px" onclick="openTimeline()">ย้อนดูฟีลที่ผ่านมา 📅</button>
-  <p class="center muted" style="font-size:10px;margin-top:10px;cursor:pointer" onclick="if(confirm('ล้างข้อมูลเซสชันที่บันทึกไว้ในเครื่องนี้ทั้งหมด? (ไว้ใช้ทดสอบเท่านั้น)')){try{localStorage.removeItem(SESSION_KEY)}catch(e){}location.reload()}">ล้างข้อมูลเซสชัน (สำหรับทดสอบ)</p>
+  <button class="btn-ghost" style="width:100%;margin-top:10px" onclick="logOut()">🚪 ออกจากระบบ</button>
+  <p class="center muted" style="font-size:10px;margin-top:8px">ข้อมูลของเธอปลอดภัยแน่นอน แค่ออกจากระบบบนเครื่องนี้เท่านั้น กลับมากรอกรหัสพนักงานใหม่เมื่อไหร่ก็เห็นข้อมูลเดิมครบ</p>
   <div class="navbar">
     <button class="navbtn" onclick="nav('screen-home')"><span class="ic">🏠</span>หน้าหลัก</button>
     <button class="navbtn" onclick="nav('screen-park')"><span class="ic">🌳</span>สวน</button>
@@ -722,7 +723,7 @@ const petIcons={dog:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAA
 // ==== Google Sheet backend (Google Apps Script Web App) ====
 // 1) Deploy a Google Apps Script as a Web App (Execute as: Me, Who has access: Anyone).
 // 2) Paste its /exec URL below. Until then, all calls below fail silently (console warning only).
-const GAS_URL='https://script.google.com/macros/s/AKfycbyb6bcbt0rRB6MScVcfXhQY9-Yv0T9GtpbZIMfdYm937Z22jeafR9NwwqNyxN3QbXT-Hw/exec';
+const GAS_URL='';
 
 async function gasPost(action,payload){
   if(!GAS_URL){console.warn('[GAS not configured] would send:',action,payload);return null;}
@@ -810,6 +811,12 @@ setInterval(()=>{
 // "stay logged in" won't demo here — but it works normally once this file is
 // downloaded and opened directly in a real browser/phone, which is how it's meant to run.
 const SESSION_KEY='rakjai1330_session';
+function logOut(){
+  if(!confirm('ออกจากระบบเลยไหม? ข้อมูลของเธอปลอดภัยแน่นอน แค่ต้องกรอกรหัสพนักงานใหม่ตอนกลับมาเข้าครั้งหน้า'))return;
+  try{localStorage.removeItem(SESSION_KEY);}catch(e){}
+  location.reload();
+}
+
 function saveSession(){
   try{
     localStorage.setItem(SESSION_KEY,JSON.stringify({
@@ -1040,7 +1047,15 @@ async function login(){
   const result=await gasPost('getEmployee',{empId:v});
   state.empName=(result&&result.name)?result.name:('พนักงาน '+v.slice(-3));
   document.getElementById('login-msg').textContent='สวัสดีคุณ '+state.empName+' 👋';
-  setTimeout(()=>nav('screen-pick'),500);
+  if(result&&result.petIconKey){
+    // returning user on a new device — restore their existing companion instead of re-picking
+    state.pet=result.pet||result.petIconKey;
+    state.petIconKey=result.petIconKey;
+    state.petName=result.petName||state.pet;
+    setTimeout(()=>{applySessionToUI();saveSession();},500);
+  }else{
+    setTimeout(()=>nav('screen-pick'),500);
+  }
 }
 
 function pickPet(btn){
