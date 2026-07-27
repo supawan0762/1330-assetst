@@ -723,7 +723,7 @@ const petIcons={dog:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAA
 // ==== Google Sheet backend (Google Apps Script Web App) ====
 // 1) Deploy a Google Apps Script as a Web App (Execute as: Me, Who has access: Anyone).
 // 2) Paste its /exec URL below. Until then, all calls below fail silently (console warning only).
-const GAS_URL='';
+const GAS_URL='https://script.google.com/macros/s/AKfycbyb6bcbt0rRB6MScVcfXhQY9-Yv0T9GtpbZIMfdYm937Z22jeafR9NwwqNyxN3QbXT-Hw/exec';
 
 async function gasPost(action,payload){
   if(!GAS_URL){console.warn('[GAS not configured] would send:',action,payload);return null;}
